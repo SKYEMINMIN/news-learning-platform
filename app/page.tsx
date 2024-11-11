@@ -9,16 +9,22 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { format } from 'date-fns'
 import { ChevronRight, Newspaper, PenTool } from 'lucide-react'
+import axios from 'axios'
 
 const API_KEY = 'dc6b340bb21432e40ed552ac70befd79'
 
-async function fetchGNewsArticles(category) {
+async function fetchGNewsArticles(category: string) {
   try {
-    const response = await fetch(
-      `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&apikey=${API_KEY}&max=10`
-    )
-    const data = await response.json()
-    return data.articles.map((article, index) => ({
+    const response = await axios.get(`https://gnews.io/api/v4/top-headlines`, {
+      params: {
+        category: category,
+        lang: 'en',
+        country: 'us',
+        max: 10,
+        apikey: API_KEY
+      }
+    })
+    return response.data.articles.map((article: any, index: number) => ({
       id: index,
       title: article.title,
       content: article.content,
@@ -32,7 +38,7 @@ async function fetchGNewsArticles(category) {
   }
 }
 
-function NewsItem({ article, onSelect }) {
+function NewsItem({ article, onSelect }: { article: any; onSelect: (article: any) => void }) {
   return (
     <Card className="mb-4 cursor-pointer hover:bg-gray-100" onClick={() => onSelect(article)}>
       <CardContent className="p-4">
@@ -43,9 +49,9 @@ function NewsItem({ article, onSelect }) {
   )
 }
 
-function LearningPage({ article }) {
-  const paragraphs = article.content.split('. ').map(sentence => sentence + '.')
-  const chineseParagraphs = paragraphs.map(p => `这里是"${p}"的中文翻译。`) // 实际应用中需要真实的翻译
+function LearningPage({ article }: { article: any }) {
+  const paragraphs = article.content.split('. ').map((sentence: string) => sentence + '.')
+  const chineseParagraphs = paragraphs.map((p: string) => `这里是"${p}"的中文翻译。`) // 实际应用中需要真实的翻译
 
   const articleVocabulary = [
     { word: "unprecedented", phonetic: "/ʌnˈpresɪdentɪd/", partOfSpeech: "adjective", translation: "空前的，前所未有的" },
@@ -53,7 +59,7 @@ function LearningPage({ article }) {
     { word: "revolutionize", phonetic: "/ˌrevəˈluːʃənaɪz/", partOfSpeech: "verb", translation: "彻底改变，革新" },
   ]
 
-  const highlightVocab = (text) => {
+  const highlightVocab = (text: string) => {
     let highlightedText = text
     articleVocabulary.forEach(word => {
       const regex = new RegExp(`\\b${word.word}\\b`, 'gi')
@@ -66,7 +72,7 @@ function LearningPage({ article }) {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold mb-4">{article.title}</h2>
       <p className="text-sm text-gray-500">来源: {article.source} | 日期: {article.date}</p>
-      {paragraphs.map((para, index) => (
+      {paragraphs.map((para: string, index: number) => (
         <Card key={index} className="mb-4">
           <CardContent className="p-4">
             <p className="mb-2">{highlightVocab(para)}</p>
@@ -140,7 +146,7 @@ export default function NewsLearningPlatform() {
     }
   }, [selectedCategory])
 
-  const handleManualArticleSubmit = (e) => {
+  const handleManualArticleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const newArticle = {
       id: Date.now(),
@@ -149,18 +155,18 @@ export default function NewsLearningPlatform() {
       source: '手动输入',
       date: new Date().toISOString().split('T')[0]
     }
-    setNews(prevNews => [newArticle, ...prevNews])
+    setNews((prevNews: any) => [newArticle, ...prevNews])
     setManualArticle({ title: '', content: '' })
   }
 
-  const archiveArticle = (article) => {
+  const archiveArticle = (article: any) => {
     const updatedArchivedNews = [...archivedNews, article]
     setArchivedNews(updatedArchivedNews)
     localStorage.setItem('archivedNews', JSON.stringify(updatedArchivedNews))
   }
 
-  const addToVocabulary = (word) => {
-    if (!vocabulary.some(item => item.word === word.word)) {
+  const addToVocabulary = (word: any) => {
+    if (!vocabulary.some((item: any) => item.word === word.word)) {
       const updatedVocabulary = [...vocabulary, word]
       setVocabulary(updatedVocabulary)
       localStorage.setItem('vocabulary', JSON.stringify(updatedVocabulary))
@@ -187,7 +193,7 @@ export default function NewsLearningPlatform() {
             {newsCategories.map((category) => (
               <TabsContent key={category} value={category}>
                 <ScrollArea className="h-[calc(100vh-200px)]">
-                  {news.map((article) => (
+                  {news.map((article: any) => (
                     <NewsItem
                       key={article.id}
                       article={article}
